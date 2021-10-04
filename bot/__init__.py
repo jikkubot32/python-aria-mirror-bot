@@ -31,6 +31,32 @@ def getConfig(name: str):
 
 LOGGER = logging.getLogger(__name__)
 
+CONFIG_FILE_URL = os.environ.get('CONFIG_FILE_URL', None)
+if CONFIG_FILE_URL is not None:
+    out = subprocess.run(["wget", "-q", "-O", "config.env", CONFIG_FILE_URL])
+    if out.returncode != 0:
+        logging.error(out)
+
+load_dotenv('config.env')
+
+Interval = []
+
+
+def getConfig(name: str):
+    return os.environ[name]
+
+def mktable():
+    try:
+        conn = psycopg2.connect(DB_URI)
+        cur = conn.cursor()
+        sql = "CREATE TABLE users (uid bigint, sudo boolean DEFAULT FALSE);"
+        cur.execute(sql)
+        conn.commit()
+        LOGGER.info("Table Created!")
+    except Error as e:
+        LOGGER.error(e)
+        exit(1)
+
 try:
     if bool(getConfig('_____REMOVE_THIS_LINE_____')):
         logging.error('The README.md file there to be read! Exiting now!')
